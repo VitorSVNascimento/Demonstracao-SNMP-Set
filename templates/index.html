@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SNMP Set API</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h2>SNMP Set</h2>
+        <form id="snmpForm">
+            <label>IP do Agente:</label>
+            <input type="text" id="ip">
+
+            <label>Community:</label>
+            <input type="password" id="community">
+
+            <label>Parâmetro:</label>
+            <select id="oid">
+                <option value="1.3.6.1.2.1.1.5.0">Nome do Sistema</option>
+                <option value="1.3.6.1.2.1.2.2.1.7.2">Status da Interface externa</option>
+                <option value="1.3.6.1.2.1.2.2.1.7.3">Status da Interface interna</option>
+                <option value="1.3.6.1.2.1.4.1.0">Encaminhamento de IP (ip_forward)</option>
+                <option value="1.3.6.1.2.1.31.1.1.1.18.2">Apelido da placa de rede externa</option>
+                <option value="1.3.6.1.2.1.31.1.1.1.18.3">Apelido da placa de rede interna</option>
+                <option value=".1.3.6.1.2.1.1.4.0">Contato do administrador do sistema</option>
+
+            </select>
+            <p id="hintText">Define o nome do dispositivo SNMP.</p>
+            <label>Tipo:</label>
+            <select disabled id="type">
+                <option value="string">String</option>
+                <option value="integer">Integer</option>
+            </select>
+
+            <label>Valor:</label>
+            <input type="text" id="value">
+
+            <button type="button" onclick="sendSNMPSet()">Enviar</button>
+        </form>
+        
+        <h3>Resposta do Servidor</h3>
+        <div class="response-box" id="response"></div>
+    </div>
+
+    <script>
+        const oidInfo = {
+        "1.3.6.1.2.1.1.5.0": "Define o nome do dispositivo SNMP.",
+        "1.3.6.1.2.1.4.1.0": "Ativa ou desativa o ip_forward (1 = UP, 2 = DOWN).",
+        "1.3.6.1.2.1.2.2.1.7.2": "Ativa ou desativa a interface externa (1 = UP, 2 = DOWN).",
+        "1.3.6.1.2.1.2.2.1.7.3": "Ativa ou desativa a interface interna (1 = UP, 2 = DOWN).",
+        "1.3.6.1.2.1.31.1.1.1.18.2":"Define um apelido para a interface de rede externa",
+        "1.3.6.1.2.1.31.1.1.1.18.3":"Define um apelido para a interface de rede interna",
+        ".1.3.6.1.2.1.1.4.0":"Esse objeto não funciona, só será usado para demonstrar o erro"
+        };
+        
+            const oidTypeMap = {
+            "1.3.6.1.2.1.1.5.0": "string",  // Nome do Sistema
+           "1.3.6.1.2.1.4.1.0":"integer",  // Encaminhamento de pacotes
+            "1.3.6.1.2.1.2.2.1.7.2": "integer",  // Status da Interface externa
+            "1.3.6.1.2.1.2.2.1.7.3": "integer",  // Status da Interface interna
+            "1.3.6.1.2.1.31.1.1.1.18.2":"string",//Alias da interface externa
+            "1.3.6.1.2.1.31.1.1.1.18.3":"string",//Alias da interface interna
+            ".1.3.6.1.2.1.1.4.0":"string",
+        };
+
+        document.getElementById('oid').addEventListener('change', function () {
+            const selectedOid = this.value;
+            const typeDropdown = document.getElementById('type');
+            const hintText = document.getElementById('hintText');
+
+            if (oidInfo[selectedOid]) {
+                hintText.textContent = oidInfo[selectedOid]; // Atualiza a descrição
+            }
+
+            if (oidTypeMap[selectedOid]) {
+                typeDropdown.value = oidTypeMap[selectedOid];
+            }
+        });
+
+        function sendSNMPSet() {
+            const data = {
+                ip: document.getElementById('ip').value,
+                community: document.getElementById('community').value,
+                oid: document.getElementById('oid').value,
+                type: document.getElementById('type').value,
+                value: document.getElementById('value').value
+            };
+
+            fetch('http://127.0.0.1:5000/snmpset', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            })
+            .then(response => response.json())
+            .then(result => {
+                document.getElementById('response').innerHTML = `
+                    <strong>Parâmetro alterado:</strong> ${data.oid} <br>
+                    <strong>Novo valor:</strong> ${data.value} <br>
+                    <strong>Resposta do servidor:</strong> ${JSON.stringify(result)}
+                `;
+            })
+            .catch(error => {
+                document.getElementById('response').innerHTML = `<strong>Erro:</strong> ${error}`;
+                console.error('Error:', error);
+            });
+        }
+    </script>
+</body>
+</html>
+
