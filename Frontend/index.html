@@ -95,6 +95,13 @@
             })
             .then(response => response.json())
             .then(result => {
+                if(result.error){
+                    document.getElementById('response').innerHTML = `
+                    <strong>Parâmetro não foi alterado:</strong> ${data.oid} <br>
+                    <strong>Resposta do servidor:</strong> ${JSON.stringify(result)}
+                `;    
+                    return
+                }
                 document.getElementById('response').innerHTML = `
                     <strong>Parâmetro alterado:</strong> ${data.oid} <br>
                     <strong>Novo valor:</strong> ${data.value} <br>

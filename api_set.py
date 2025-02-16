@@ -26,11 +26,6 @@ def snmp_set():
     value_map = {
         'integer': v2c.Integer,
         'string': v2c.OctetString,
-        # 'oid': v2c.ObjectIdentifier,
-        # 'ip': v2c.IpAddress,
-        # 'counter': v2c.Counter32,
-        # 'gauge': v2c.Gauge32,
-        # 'timeticks': v2c.TimeTicks
     }
     
     if value_type not in value_map:
