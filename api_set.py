@@ -39,21 +39,25 @@ def snmp_set():
     value_class = value_map[value_type]
     
     try:
+        # Envia o comando SNMP SET para o agente, utilizando os parâmetros fornecidos.
         error_indication, error_status, error_index, var_binds = next(
-            setCmd(SnmpEngine(),
-                   CommunityData(community, mpModel=1),
-                   UdpTransportTarget((agent_ip, 161)),
-                   ContextData(),
-                   ObjectType(ObjectIdentity(oid), value_class(value)))
+            setCmd(SnmpEngine(),  # Cria uma instância do SNMP engine.
+                   CommunityData(community, mpModel=1),  # Define os dados da comunidade SNMP (versão 2c).
+                   UdpTransportTarget((agent_ip, 161)), # Define o alvo SNMP (endereço IP e porta).
+                   ContextData(), # Dados do contexto SNMP (geralmente vazio).
+                   ObjectType(ObjectIdentity(oid), value_class(value))) # Define o OID e o valor a ser atribuído.
         )
         
         if error_indication:
+            # Retorna o erro SNMP, caso tenha ocorrido.
             return jsonify({'error': str(error_indication)}), 500
         elif error_status:
+            # Retorna o status de erro SNMP, caso tenha ocorrido.
             return jsonify({'error': f'{error_status.prettyPrint()} at {error_index and var_binds[int(error_index)-1] or "?"}'}), 500
         else:
             return jsonify({'success': 'SNMP set successful'})
     except Exception as e:
+         # Se ocorrer alguma exceção inesperada, retorna o erro.
         return jsonify({'error': str(e)}), 500
 
 if __name__ == '__main__':
