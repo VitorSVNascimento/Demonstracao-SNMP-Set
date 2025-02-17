@@ -1,0 +1,5 @@
+services:
+  flask-api:
+    image: leticia937/snmp_set2:1.0
+    ports: 
+      - 5555:5000
